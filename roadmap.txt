@@ -1,0 +1,108 @@
+Project To-Do Queue
+1. Refactor existing scripts
+
+ Separate CPU and GPU benchmark scripts into modular Python functions:
+
+cpu_benchmark(n_iter=...) -> dict
+
+gpu_benchmark(matrix_size=..., iterations=...) -> dict
+
+ Include optional per-core CPU usage, total time, and GFLOPS calculations.
+
+ Include optional GPU metrics: memory usage, load, elapsed time.
+
+ Wrap each benchmark in a try/except to catch errors gracefully (no crashing).
+
+
+
+2. Standardize output
+
+ Return benchmark results as a JSON-like dictionary:
+
+{
+    "cpu": {"cores": 8, "total_time": 12.3, "avg_time_per_core": 1.5, "per_core_usage": [100,99,...]},
+    "gpu": {"device": "RTX 3060", "matrix_size": 4096, "iterations": 100, "elapsed_time": 25.3}
+}
+
+
+ Ensure timestamps are included for logging / history.
+
+ Optional: Add machine info (OS, RAM, disk) to JSON.
+
+
+
+3. Flask Web App Setup
+
+ Create a Flask app with routes:
+
+/ → Home page / basic instructions
+
+/benchmark/run → Trigger a benchmark (CPU, GPU, or both)
+
+/benchmark/results → Return latest results as JSON
+
+ Optionally add query parameters to configure test:
+
+CPU iterations
+
+GPU matrix size / iterations
+
+ Implement CORS headers if others access from different domains.
+
+
+
+4. Background Execution
+
+ Benchmarking is CPU/GPU heavy → run it asynchronously:
+
+Use ThreadPoolExecutor or ProcessPoolExecutor inside Flask
+
+Or integrate Celery / RQ for background tasks
+
+ Maintain a global or database-stored latest result for /benchmark/results without rerunning every request.
+
+
+
+5. Real-time updates (optional, advanced)
+
+ Use Flask-SocketIO for broadcasting results live:
+
+Users can see CPU/GPU progress in real time.
+
+Emit per-core CPU % updates and GPU iteration progress.
+
+ Alternative: poll /benchmark/results every few seconds on the front end (simpler).
+
+
+
+6. Front-end
+
+ Minimal web page with:
+
+Start benchmark button
+
+Real-time result display (CPU usage bars, GPU load, total time)
+
+ Optional: Graph per-core CPU usage and GPU memory load using JS library (Chart.js, D3.js)
+
+
+
+7. Logging and Persistence
+
+ Save past benchmark results in SQLite or JSON file
+
+ Allow users to view history
+
+ Optional: Export results as CSV or JSON
+
+
+
+8. Safety / Production
+
+ Limit CPU/GPU benchmark parameters to prevent system crash
+
+ Catch GPU memory errors (especially large matrix size)
+
+ Run Flask with threaded=False if using multi-process benchmark internally
+
+ Optional: Use Docker to isolate benchmarking environment
